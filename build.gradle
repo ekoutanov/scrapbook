@@ -38,12 +38,17 @@ allprojects {
   ext {
     fulcrumVersion = "0.17.0"
     mockitoVersion = "2.19.1"
+    equalsverifierVersion = "2.5.1"
+    pojotesterVersion = "0.7.6"
+    jacksonVersion = "2.9.6"
     
     repoDir = "${project(':').projectDir}/../../repo"
   }
   
   dependencies {
     compile "com.obsidiandynamics.fulcrum:fulcrum-func:${fulcrumVersion}"
+    compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+    compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVersion}"
   
     testCompile "com.obsidiandynamics.fulcrum:fulcrum-assert:${fulcrumVersion}"
     testCompile "com.obsidiandynamics.fulcrum:fulcrum-await:${fulcrumVersion}"
@@ -53,8 +58,8 @@ allprojects {
     testCompile "com.obsidiandynamics.fulcrum:fulcrum-verifier:${fulcrumVersion}"
     testCompile "junit:junit:4.12"
     testCompile "org.mockito:mockito-core:${mockitoVersion}"
-    testCompile "nl.jqno.equalsverifier:equalsverifier:2.4.8"
-    testCompile "pl.pojo:pojo-tester:0.7.6"
+    testCompile "nl.jqno.equalsverifier:equalsverifier:${equalsverifierVersion}"
+    testCompile "pl.pojo:pojo-tester:${pojotesterVersion}"
   }
   
   compileJava {
