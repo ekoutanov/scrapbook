@@ -1,26 +1,33 @@
 package scrapbook.parallelwordcounter;
 
 import java.io.*;
-import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.function.*;
 import java.util.stream.*;
 
 public final class ParallelWordCounter {
   private static final class WordCountTask implements Callable<Map<String, Integer>> {
     private final File file;
     
-    public WordCountTask(File file) {
+    WordCountTask(File file) {
       this.file = file;
     }
 
     @Override
     public Map<String, Integer> call() throws Exception {
-      final var contents = new String(Files.readAllBytes(Path.of(file.toURI())));
-      return Arrays.stream(contents.toString().split("\\s+"))
-          .map(String::toLowerCase)
-          .collect(Collectors.groupingBy(Function.identity(), Collectors.summingInt(__ -> 1)));
+      final var counts = new HashMap<String, Integer>();
+      try (var reader = new BufferedReader(new FileReader(file))) {
+        String line = null;
+        while ((line = reader.readLine()) != null) {
+          final var words = line.toLowerCase().split("\\s+");
+          for (var word : words) {
+            counts.compute(word, (__, existingCount) -> {
+              return existingCount != null ? existingCount + 1 : 1;
+            });
+          }
+        }
+      }
+      return counts;
     }
   }
   
