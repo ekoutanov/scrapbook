@@ -40,16 +40,16 @@ public final class ParallelWordCounter {
           .map(executor::submit)
           .collect(Collectors.toList());
       
-      final var aggregate = new TreeMap<String, Integer>();
+      final var collected = new ArrayList<Map<String, Integer>>(futures.size());
       for (var future : futures) {
-        final var counts = future.get();
-        for (var count : counts.entrySet()) {
-          aggregate.compute(count.getKey(), (__, existingValue) -> {
-            return existingValue != null ? existingValue + count.getValue() : count.getValue();
-          });
-        }
+        collected.add(future.get());
       }
-      return aggregate;
+      
+      return collected.stream()
+          .flatMap(map -> map.entrySet().stream())
+          .collect(Collectors.groupingBy(wordAndCount -> wordAndCount.getKey(), 
+                                         TreeMap::new, 
+                                         Collectors.summingInt(wordAndCount -> wordAndCount.getValue())));
     } finally {
       executor.shutdown();
     }
