@@ -17,13 +17,12 @@ public final class ParallelWordCounter {
     public Map<String, Integer> call() throws Exception {
       final var counts = new HashMap<String, Integer>();
       try (var reader = new BufferedReader(new FileReader(file))) {
-        String line = null;
-        while ((line = reader.readLine()) != null) {
+        for (String line; (line = reader.readLine()) != null;) {
           final var words = line.toLowerCase().split("\\s+");
           for (var word : words) {
-            counts.compute(word, (__, existingCount) -> {
-              return existingCount != null ? existingCount + 1 : 1;
-            });
+            counts.compute(word, (__, existingCount) ->
+              existingCount != null ? existingCount + 1 : 1
+            );
           }
         }
       }
@@ -31,7 +30,7 @@ public final class ParallelWordCounter {
     }
   }
   
-  public static Map<String, Integer> countAll(File dir, int numThreads) throws InterruptedException, ExecutionException {
+  public static SortedMap<String, Integer> countAll(File dir, int numThreads) throws InterruptedException, ExecutionException {
     final var executor = Executors.newFixedThreadPool(numThreads);
     try {
       final var futures = Arrays.stream(dir.listFiles())
