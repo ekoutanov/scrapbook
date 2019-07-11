@@ -5,14 +5,14 @@ import static java.math.BigInteger.*;
 import java.math.*;
 
 public final class SampleAnalyser {
-  private static final MathContext MC = new MathContext(20,  RoundingMode.HALF_EVEN);
+//  private static final MathContext MC = new MathContext(20,  RoundingMode.HALF_EVEN);
   
-  public static SampleAnalysis analyse(BigInteger product, BigInteger first, long span) {
-    final var last = first.add(BigInteger.valueOf(span));
+  public static SampleAnalysis analyse(BigInteger product, BigInteger first, BigInteger span) {
+    final var last = first.add(span);
     var current = first;
     var prevRemainder = current;
-    var deltaSum = ZERO;
-    var deltaSumSquares = ZERO;
+//    var deltaSum = ZERO;
+//    var deltaSumSquares = ZERO;
     var processed = 0L;
     
     var periodStart = -1L;
@@ -26,7 +26,7 @@ public final class SampleAnalyser {
       lastRemainder = remainder;
       
       if (remainder.compareTo(ZERO) == 0) {
-        return new SampleAnalysis(first, null, 0L, current);
+        return new SampleAnalysis(first, BigInteger.ZERO, BigInteger.ZERO, current);
       }
       
       var remainderDelta = prevRemainder.subtract(remainder);
@@ -36,35 +36,38 @@ public final class SampleAnalyser {
           periodStart = processed;
           //System.out.println("START MARK");
         } else {
-          //period = processed - periodStart;
           sumPeriods += processed - periodStart;
           periodStart = processed;
           numPeriods++;
           //System.out.println("END MARK");
         }
       }
-      //System.out.println("current=" + current + ", remainder=" + remainder + ", remainderDelta=" + remainderDelta);
-      deltaSum = deltaSum.add(remainderDelta);
-      deltaSumSquares = deltaSumSquares.add(remainderDelta.multiply(remainderDelta));
+//      System.out.println("current=" + current + ", remainder=" + remainder + ", remainderDelta=" + remainderDelta);
+//      deltaSum = deltaSum.add(remainderDelta);
+//      deltaSumSquares = deltaSumSquares.add(remainderDelta.multiply(remainderDelta));
       prevRemainder = remainder;
       current = current.add(TWO);
       processed++;
     }
     
-    final var samples = BigDecimal.valueOf(processed);
-    
-    final var mean = new BigDecimal(deltaSum).divide(samples, MC);
-    final var variance = new BigDecimal(deltaSumSquares).divide(samples, MC).subtract(mean.multiply(mean));
-    final var stdev = variance.sqrt(MC);
-    final var entropy = stdev.divide(new BigDecimal(first), MC);
+//    final var samples = BigDecimal.valueOf(processed);
+//    final var mean = new BigDecimal(deltaSum).divide(samples, MC);
+//    final var variance = new BigDecimal(deltaSumSquares).divide(samples, MC).subtract(mean.multiply(mean));
+//    final var stdev = variance.sqrt(MC);
+//    final var entropy = stdev.divide(new BigDecimal(first), MC);
 
-    final double meanPeriod;
+    final BigInteger meanPeriod;
     if (numPeriods > 0) {
-      meanPeriod = sumPeriods / numPeriods;
+      meanPeriod = BigInteger.valueOf((int) (sumPeriods * 2 / numPeriods));
     } else {
-      final var remainderDiff = firstRemainder.subtract(lastRemainder);
-      meanPeriod = first.multiply(BigInteger.valueOf(span)).divide(remainderDiff).doubleValue();
+      var remainderDiff = firstRemainder.subtract(lastRemainder);
+      if (remainderDiff.compareTo(BigInteger.ZERO) < 0) {
+        remainderDiff = remainderDiff.add(first);
+      }
+      meanPeriod = first.multiply(span).divide(remainderDiff);
+//      System.out.println("firstRem=" + firstRemainder + ", lastRem=" + lastRemainder + ", diff=" + remainderDiff);
     }
-    return new SampleAnalysis(first, entropy, meanPeriod, null);
+    final var phase = firstRemainder.multiply(meanPeriod).divide(first);
+    return new SampleAnalysis(first, meanPeriod, phase, null);
   }
 }
